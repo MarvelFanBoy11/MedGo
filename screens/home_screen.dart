@@ -16,7 +16,7 @@ class _HomeScreenState extends State<HomeScreen> {
     Product(
       name: "Panadol", 
       price: 29.99, 
-      imagePath: "images/Panadol.jpeg", 
+      imagePath: "images/Panadol.png", 
       description: 'Fast-acting pain relief with caffeine boost', 
       Long_description:'''
 Panadol is a widely recognized over-the-counter medication providing effective relief from mild to moderate pain and reducing fever. The active ingredient is paracetamol, which helps block pain signals and lowers inflammation.
@@ -34,7 +34,7 @@ Important:
     Product(
       name: "Panthenol", 
       price: 79.99, 
-      imagePath: "images/Panthenol.jpeg", 
+      imagePath: "images/Panthenol.png", 
       description: 'Advanced skin healing and moisturizing cream', 
       Long_description:'''
 Panthenol, also known as provitamin B5, is a moisturizing and healing ingredient widely used in skincare and haircare products. It attracts and retains moisture, helping soothe and repair skin and hair.
@@ -52,7 +52,7 @@ Important:
     Product(
       name: "C-Retard", 
       price: 49.99, 
-      imagePath: "images/C-Retard.jpeg", 
+      imagePath: "images/C-Reterd.png", 
       description: 'Vitamin C', 
       Long_description:'''
 C-Retard is a sustained-release Vitamin C supplement designed to provide your body with a steady supply of this important antioxidant throughout the day. It supports immune health, collagen production, and overall vitality.
@@ -106,7 +106,11 @@ Important:
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: Icon(Icons.local_pharmacy,color: Color(0xffF6F4EB)),
+        leading: IconButton(
+          onPressed: () {
+            Navigator.pushNamed(context, '/Account');
+          },
+          icon: Icon(Icons.local_pharmacy,color: Color(0xffF6F4EB))),
         backgroundColor: Color(0xff4682A9),
         title: Text("MedGo", style: TextStyle(color: Color(0xffF6F4EB))),
         actions: [

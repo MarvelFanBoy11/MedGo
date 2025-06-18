@@ -14,9 +14,9 @@ class _AccountScreenState extends State<AccountScreen> {
       backgroundColor: Color(0xFFF3F4F6),
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          padding: EdgeInsets.symmetric(horizontal: 24.0),
           child: Container(
-            padding: const EdgeInsets.all(24.0),
+            padding: EdgeInsets.all(24.0),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(16.0),
@@ -63,13 +63,11 @@ class _AccountScreenState extends State<AccountScreen> {
                   onPressed: () {
                     Navigator.pushNamed(context, '/Home');
                   },
-                  child: 
-                  Row(
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // Image.asset("images/Google.jpeg", height: 24.0),
-                      SizedBox(width: 8),
-                      Text("Sign in with Google"),
+                      Image.asset('images/Google.png',height: 50,),
+                      Text("Sign in"),
                     ],
                   ),
                 ),

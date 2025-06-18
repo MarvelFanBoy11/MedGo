@@ -17,6 +17,7 @@ class MedGo extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       routes: {
            '/Home' : (context) => HomeScreen(),
+           '/Account': (context) => AccountScreen(),
         },
     );
   }
