@@ -1,6 +1,20 @@
 // ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables, use_key_in_widget_constructors
 
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+
+
+signInWithGoogle() async{
+  final GoogleSignInAccount? gUser = await GoogleSignIn().signIn();
+  final GoogleSignInAuthentication gAuth = await gUser!.authentication;
+  final credential = GoogleAuthProvider.credential(
+    accessToken: gAuth.accessToken,
+    idToken: gAuth.idToken,
+  );
+
+  return await FirebaseAuth.instance.signInWithCredential(credential);
+}
 
 class AccountScreen extends StatefulWidget {
   @override
@@ -33,20 +47,12 @@ class _AccountScreenState extends State<AccountScreen> {
               children: [
                 Icon(Icons.lock, size: 40, color: Colors.blue),
                 SizedBox(height: 16.0),
-                Text(
-                  'Secure Access',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
+                Text('Secure Access',style: TextStyle(fontSize: 24,fontWeight: FontWeight.bold,),textAlign: TextAlign.center,),
                 SizedBox(height: 8.0),
-                Text(
-                  'Sign in or create an account to manage your health needs.',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey[600],
+                Text('Sign in or create an account to manage your health needs.',
+                     style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey[600],
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -60,9 +66,7 @@ class _AccountScreenState extends State<AccountScreen> {
                 ),
                 SizedBox(height: 16.0),
                 ElevatedButton(
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/Home');
-                  },
+                  onPressed: () => signInWithGoogle(),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -72,13 +76,8 @@ class _AccountScreenState extends State<AccountScreen> {
                   ),
                 ),
                 SizedBox(height: 16.0),
-                Text(
-                  'By signing in, you agree to our Terms of Service and Privacy Policy.',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                  ),
-                ),
+                Text('By signing in, you agree to our Terms of Service and Privacy Policy.',
+                          style: TextStyle(fontSize: 12,color: Colors.grey[600],),),
               ],
             ),
           ),

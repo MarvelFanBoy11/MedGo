@@ -1,4 +1,4 @@
-// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables, library_private_types_in_public_api, use_key_in_widget_constructors
+// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables, library_private_types_in_public_api, use_key_in_widget_constructors, non_constant_identifier_names
 
 import 'package:demo/screens/Product_screen.dart';
 import 'package:flutter/material.dart';
@@ -72,6 +72,15 @@ Important:
 
   List<Product> cart = [];
 
+  // New code: list for filtered products for the search feature
+  List<Product> filteredProducts = [];
+
+  @override
+  void initState() {
+    super.initState();
+    filteredProducts = products;
+  }
+
   void addToCart(Product product) {
     setState(() {
       cart.add(product);
@@ -93,6 +102,7 @@ Important:
     );
   }
 
+  TextEditingController MyController = TextEditingController();
 
   void showInfo(Product product) {
     setState(() {
@@ -100,6 +110,20 @@ Important:
     });
       Navigator.pop(context);
       Navigator.push(context,MaterialPageRoute(builder: (context) => ProductScreen(productinfo: info[0],),),);
+  }
+
+  void _filterProducts(String search) {
+    if (search.isEmpty) {
+      setState(() {
+        filteredProducts = products;
+      });
+    } else {
+      setState(() {
+        filteredProducts = products.where((product) {
+          return product.name.toLowerCase().contains(search.toLowerCase());
+        }).toList();
+      });
+    }
   }
 
   @override
@@ -147,31 +171,35 @@ Important:
                 ],
               ),
             ),
-            SizedBox(height: 16.0), // Added spacing
+            SizedBox(height: 16.0),
+
             TextField(
-              decoration: InputDecoration(
+              controller: MyController,
+              onChanged: _filterProducts,
+              decoration: InputDecoration(            
                 hintText: "Search medicines...",
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(15.0),
                   borderSide: BorderSide(color: Color(0xff4682A9)),
-                ),
+                ),                
                 prefixIcon: Icon(Icons.search),
               ),
             ),
-            SizedBox(height: 16.0), // Added spacing
+            SizedBox(height: 16.0), 
+
             Expanded(
               child: GridView.builder(
                 padding: EdgeInsets.all(10),
-                itemCount: products.length,
+                itemCount: filteredProducts.length,
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
-                  childAspectRatio: 0.68, // Adjusted for better card view
+                  childAspectRatio: 0.68,
                   crossAxisSpacing: 10,
                   mainAxisSpacing: 10,
                 ),
                 itemBuilder: (context, index) {
-                  final product = products[index];
-                  return ProductCard(product: product, onAddToCart: addToCart, onShowInfo: showInfo,);
+                  final product = filteredProducts[index];
+                  return ProductCard(product: product, onAddToCart: addToCart, onShowInfo: showInfo);
                 },
               ),
             ),
