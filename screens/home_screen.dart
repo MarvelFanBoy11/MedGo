@@ -1,7 +1,9 @@
 // ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables, library_private_types_in_public_api, use_key_in_widget_constructors, non_constant_identifier_names
 
-import 'package:demo/screens/Product_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'product_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../models/product.dart';
 import '../screens/cart_screen.dart';
 import '../widgets/product_card.dart';
@@ -11,11 +13,16 @@ class HomeScreen extends StatefulWidget {
   _HomeScreenState createState() => _HomeScreenState();
 }
 
+
+
 class _HomeScreenState extends State<HomeScreen> {
   List<Product> products = [
     Product(
+      id: "1",
       name: "Panadol", 
       price: 29.99, 
+      pharmcy: "Eleslam",
+      category: "Pain Relief",
       imagePath: "images/Panadol.png", 
       description: 'Fast-acting pain relief with caffeine boost', 
       Long_description:'''
@@ -32,8 +39,11 @@ Important:
 
       ),
     Product(
+      id: "2",
       name: "Panthenol", 
       price: 79.99, 
+      pharmcy: "mohamed",
+      category: "Skin Care",
       imagePath: "images/Panthenol.png", 
       description: 'Advanced skin healing and moisturizing cream', 
       Long_description:'''
@@ -50,8 +60,11 @@ Important:
      
       ),
     Product(
+      id: "3",
       name: "C-Retard", 
       price: 49.99, 
+      pharmcy: "Eleman",
+      category: "Vitamins",
       imagePath: "images/C-Reterd.png", 
       description: 'Vitamin C', 
       Long_description:'''
@@ -80,27 +93,26 @@ Important:
     super.initState();
     filteredProducts = products;
   }
+int cartlen = 0;
 
-  void addToCart(Product product) {
-    setState(() {
-      cart.add(product);
+void addToCart(Product product) async{
+  final user = FirebaseAuth.instance.currentUser;
+  cartlen += 1;
+  if (user != null) {
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('cart')
+        .doc(product.id)
+        .set({
+      'name': product.name,
+      'price': product.price,
+      'imagePath': product.imagePath,
+      'description': product.description,
+      'Long_description': product.Long_description,
     });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: Color(0xff4682A9),
-        content:
-        Container(
-          decoration: 
-          BoxDecoration(
-            borderRadius: BorderRadius.circular(15)
-          ),
-                  child: 
-                        Text("${product.name} added to cart",style: TextStyle(color: Color(0xffF6F4EB)),)
-        ),
-      ),
-    );
   }
+}
 
   TextEditingController MyController = TextEditingController();
 
@@ -138,7 +150,7 @@ Important:
         backgroundColor: Color(0xff4682A9),
         title: Text("MedGo", style: TextStyle(color: Color(0xffF6F4EB))),
         actions: [
-          Text((cart.length).toString(),style: TextStyle(color: Color(0xffF6F4EB)),),
+          Text(cartlen.toString(),style: TextStyle(color: Color(0xffF6F4EB)),),
           IconButton(   
             icon: Icon(Icons.shopping_cart,color: Color(0xffF6F4EB)),
             onPressed: () {
@@ -146,7 +158,7 @@ Important:
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => CartScreen(cart: cart),
+                  builder: (context) => CartScreen(),
                 ),
               );
             },

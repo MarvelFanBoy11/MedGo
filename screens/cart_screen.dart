@@ -1,46 +1,76 @@
-// ignore_for_file: prefer_const_constructors
+// ignore_for_file: prefer_const_constructors, use_build_context_synchronously, use_key_in_widget_constructors, prefer_const_constructors_in_immutables, avoid_print
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../models/product.dart';
+import 'payment_screen.dart';
 
 class CartScreen extends StatefulWidget {
-  final List<Product> cart;
-
-  CartScreen({required this.cart});
+  CartScreen();
 
   @override
   State<CartScreen> createState() => _CartScreenState();
 }
 
 class _CartScreenState extends State<CartScreen> {
-  
-  void removeProduct(Product product) {
-    setState(() {
-      widget.cart.remove(product);
-    });
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  late final CollectionReference userCartCollection;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: Color(0xff4682A9),
-        content: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(15),
-          ),
-          child: Text(
-            "${product.name} removed from cart",
-            style: TextStyle(color: Color(0xffF6F4EB)),
-          ),
-        ),
-      ),
-    );
+  @override
+  void initState() {
+    super.initState();
+    final user = _auth.currentUser;
+    if (user != null) {
+      userCartCollection = FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('cart');
+    }
   }
 
+  Stream<QuerySnapshot> getCart() {
+    return userCartCollection.snapshots();
+  }
+
+  Future<void> addProductToCart(Product product) async {
+    try {
+      await userCartCollection.doc(product.id).set({
+        'id': product.id,
+        'name': product.name,
+        'description': product.description,
+        'price': product.price,
+        'imagePath': product.imagePath,
+      });
+    } catch (e) {
+      print('Failed to add product to cart: $e');
+    }
+  }
+
+  Future<void> removeProduct(Product product) async {
+    try {
+      await userCartCollection.doc(product.id).delete();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Color(0xff4682A9),
+          content: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(15),
+            ),
+            child: Text(
+              "${product.name} removed from cart",
+              style: TextStyle(color: Color(0xffF6F4EB)),
+            ),
+          ),
+        ),
+      );
+    } catch (e) {
+      print('Failed to remove product from cart: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    double total = widget.cart.fold(0, (sum, item) => sum + item.price);
-    bool isEmpty = widget.cart.isEmpty;
-
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -53,20 +83,42 @@ class _CartScreenState extends State<CartScreen> {
         backgroundColor: Color(0xff4682A9),
         title: Text("Your Cart", style: TextStyle(color: Color(0xffF6F4EB))),
       ),
-      body: isEmpty // Conditional rendering based on cart status
-          ? Center(
-              child: Text(
-                "Your cart is empty",
-                style: TextStyle(fontSize: 20, color: Colors.black54),
-              ),
-            )
-          : Column(
+      body: StreamBuilder<QuerySnapshot>(
+        stream: getCart(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            final cartDocs = snapshot.data!.docs;
+            if (cartDocs.isEmpty) {
+              return Center(
+                child: Text(
+                  "Your cart is empty",
+                  style: TextStyle(fontSize: 20, color: Colors.black54),
+                ),
+              );
+            }
+            double total = 0;
+            List<Product> products = [];
+            for (var doc in cartDocs) {
+              final data = doc.data() as Map<String, dynamic>;
+              total += (data['price'] as num).toDouble();
+              products.add(Product(
+                id: doc.id,
+                name: data['name'],
+                pharmcy: data['pharmacy'] ?? '',
+                category: data['category'] ?? '',
+                description: data['description'],
+                Long_description: data['Long_description'] ?? '',
+                price: (data['price'] as num).toDouble(),
+                imagePath: data['imagePath'],
+              ));
+            }
+            return Column(
               children: [
                 Expanded(
                   child: ListView.builder(
-                    itemCount: widget.cart.length,
+                    itemCount: products.length,
                     itemBuilder: (context, index) {
-                      final item = widget.cart[index];
+                      final item = products[index];
                       return Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -107,7 +159,6 @@ class _CartScreenState extends State<CartScreen> {
                 Padding(
                   padding: EdgeInsets.all(16),
                   child: Column(
-                    spacing: 8,
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Row(
@@ -121,8 +172,13 @@ class _CartScreenState extends State<CartScreen> {
                           backgroundColor: Color(0xff4682A9),
                           padding: EdgeInsets.symmetric(horizontal: 150, vertical: 20),
                         ),
-                        onPressed: () {},
-                        child: Text(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const PaymentScreen()),
+                          );
+                        },
+                        child: const Text(
                           "Proceed To Checkout",
                           style: TextStyle(
                             color: Color(0xffF6F4EB),
@@ -134,7 +190,14 @@ class _CartScreenState extends State<CartScreen> {
                   ),
                 ),
               ],
-            ),
+            );
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error loading cart'));
+          } else {
+            return Center(child: CircularProgressIndicator());
+          }
+        },
+      ),
     );
   }
 }
